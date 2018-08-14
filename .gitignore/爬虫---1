@@ -1,0 +1,52 @@
+import  requests
+import  re
+import  os
+from bs4 import  BeautifulSoup
+def openurl(url):                                             #打开网页
+    try:
+        kv={"uesr-agent":"Mozilla/5.0"}
+        r=requests.get(url,headers=kv,timeout=30)
+        r.raise_for_status()
+        r.encoding=r.apparent_encoding
+        soup=BeautifulSoup(r.text,"html.parser")
+        return  soup
+    except:
+        print('打开网页失败！！')
+
+
+def xiazai(url,path):                           #下载图片文件（参数：图片网址，路径）
+    try:
+        p=requests.get(url)
+        with open(path, 'wb') as f:
+            f.write(p.content)
+            f.close()
+            print("文件保存成功")
+    except:
+        print("爬取失败！！！")
+
+def main():
+    root="/Python项目/绝对领域图库/"          #创建一个相对路径
+    if not os.path.exists(root):            #判断是否存在该路径，若不存在则创建
+        os.mkdir(root)
+    alist={'a':'/mantu/','b':'/fuli/','c':'/cosplay-cat/','d':'/qc/','f':'/cm/','g':'mx'}
+    lixing=input("请选择你要的类型：'a':'/mantu/','b':'/fuli/','c':'/cosplay-cat/','d':'/qc/','f':'/cm/','g':'mx'\n")
+    url="http://www.jder.net"+alist[lixing]
+    soup=openurl(url)
+    for link in soup.findAll('h2', class_="grid-title"):
+        print(link)
+        minurl=link.find('a').get('href')
+        filename=link.find('a').string
+        print(filename)
+        path_a=root+filename+'/'
+        if not os.path.exists(path_a):
+            os.mkdir(path_a)
+        soup2=openurl(minurl)
+        acc=soup2.findAll('p')[2]
+        for link in acc.findAll('img',title_=""):
+            minurl2=link.get('src')
+            print("正在下载："+minurl2)
+            path=path_a+minurl2.split('/')[-1]
+            xiazai(minurl2,path)
+
+
+main()
