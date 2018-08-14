@@ -1,0 +1,110 @@
+import requests
+import re
+import os
+from bs4 import  BeautifulSoup
+
+
+def openurl(url):
+    try:
+        kv = {"uesr-agent": "Mozilla/5.0"}
+        r = requests.get(url,headers=kv,timeout=30)
+        r.raise_for_status()
+        r.encoding = r.apparent_encoding
+        soup = BeautifulSoup(r.text, "html.parser")
+        return soup
+    except:
+        print("打开网页失败！！！")
+
+
+def main():
+    url = "https://www.sxtp.net/meinv/xinggan/"
+    soup = openurl(url)
+    root = "/Python项目/随心图库/"
+    if not os.path.exists(root):     # 创建文件夹
+        os.mkdir(root)
+    for link in soup.find_all('a', target='_blank'):  # 找出首页中的所有图集的网页、名称、图片数量
+        print(link.get('href'))
+        aurl = "https://www.sxtp.net"+link.get('href')  # 找出图集网页
+        name = link.get('title')
+        print(name)
+        if not os.path.exists(root+name+'/'):  # 创建图集文件夹
+            os.mkdir(root+name+'/')
+        soup2 = openurl(aurl)
+        emm = soup2.find_all('em')[1]
+        emn = emm.string.split('/')[-1]
+        emmmn = emn[:-2]
+        num = emmmn[1:]
+        print("共{}张".format(num))
+        burl = soup2.find('img').get('src')[:-4]
+        path_1 = root+name+'/'+burl.split('/')[-1]
+        r = requests.get(burl)
+        print("正在保存第 1 张图片")
+        try:
+            with open(path_1, 'wb') as f:
+                f.write(r.content)
+                f.close()
+                print("文件保存成功")
+        except:
+            print("爬取失败！！！")
+        for i in range(2, int(num)+1):
+            curl = aurl[:-5]+'_'+str(i)+'.html'
+            soup3 = openurl(curl)
+            furl = soup3.find('img').get('src')[:-4]
+            path_2 = root+name+'/'+furl.split('/')[-1]
+            v = requests.get(furl)
+            print("正在保存第{}张图片，还剩{}张".format(i, int(num)-i))
+            try:
+                with open(path_2, 'wb') as f:
+                    f.write(v.content)
+                    f.close()
+                    print("文件保存成功")
+            except:
+                print("爬取失败！！！")
+    for i in range(2, 502):
+        aburl = url+"index_"+str(i)+".html"
+        soup4 = openurl(aburl)
+        for link in soup4.find_all('a', target='_blank'):
+            print(link.get('href'))
+            acurl = "https://www.sxtp.net" + link.get('href')
+            name1 = link.get('title')
+            print(name1)
+            if not os.path.exists(root + name1 + '/'):
+                os.mkdir(root + name1 + '/')
+            soup5 = openurl(acurl)
+            emm = soup5.find_all('em')[1]
+            emn = emm.string.split('/')[-1]
+            emmmn = emn[:-2]
+            num = emmmn[1:]
+            print("共{}张".format(num))
+            burl = soup5.find('img').get('src')[:-4]
+            path_1 = root + name1 + '/' + burl.split('/')[-1]
+            r = requests.get(burl)
+            print("正在保存第 1 张图片")
+            try:
+                with open(path_1, 'wb') as f:
+                    f.write(r.content)
+                    f.close()
+                    print("文件保存成功")
+            except:
+                print("爬取失败！！！")
+            for i in range(2, int(num) + 1):
+                czurl = acurl[:-5] + '_' + str(i) + '.html'
+                soup3 = openurl(czurl)
+                furl = soup3.find('img').get('src')[:-4]
+                path_2 = root + name1 + '/' + furl.split('/')[-1]
+                v = requests.get(furl)
+                print("正在保存第{}张图片，还剩{}张".format(i, int(num) - i))
+                try:
+                    with open(path_2, 'wb') as f:
+                        f.write(v.content)
+                        f.close()
+                        print("文件保存成功")
+                except:
+                    print("爬取失败！！！")
+
+
+
+
+
+
+main()
